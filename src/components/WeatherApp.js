@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Container, Paper, Typography, TextField, Button, Grid, CircularProgress } from '@mui/material';
-import WeatherIcon from 'react-icons-weather';
 
 const apiKeys = {
   key: '500d336c001021419b278357f22775ad',
@@ -15,6 +14,7 @@ const WeatherApp = () => {
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [currentLocation, setCurrentLocation] = useState('');
+  const [forecast, setForecast] = useState([]);
 
   const search = (location) => {
     setLoading(true);
@@ -22,6 +22,17 @@ const WeatherApp = () => {
       .get(`${apiKeys.base}weather?q=${location}&units=metric&APPID=${apiKeys.key}`)
       .then((response) => {
         setWeather(response.data);
+
+        axios
+          .get(`${apiKeys.base}forecast?q=${location}&units=metric&APPID=${apiKeys.key}`)
+          .then((forecastResponse) => {
+            setForecast(forecastResponse.data.list);
+          })
+          .catch((forecastError) => {
+            console.error(forecastError);
+            setForecast([]);
+          });
+
         setQuery('');
         setError('');
         setLoading(false);
@@ -40,7 +51,6 @@ const WeatherApp = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-
           axios
             .get(
               `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${apiKeys.key}`
@@ -127,18 +137,8 @@ const WeatherApp = () => {
                   <Typography variant="h5" gutterBottom>
                     {weather.name}, {weather.sys.country}
                   </Typography>
-                  <Typography variant="h6">
-                    Temperature: {Math.round(weather.main.temp)}°C
-                  </Typography>
-                  <Typography variant="body1">
-                    {weather.weather[0].description}
-                  </Typography>
-                  <WeatherIcon
-                    name="owm"
-                    iconId={weather.weather[0].id}
-                    flip="horizontal"
-                    rotate="90"
-                  />
+                  <Typography variant="h6">Temperature: {Math.round(weather.main.temp)}°C</Typography>
+                  <Typography variant="body1">{weather.weather[0].description}</Typography>
                 </div>
               )}
 
@@ -160,7 +160,12 @@ const WeatherApp = () => {
                   <Button
                     variant="contained"
                     onClick={() => search(query)}
-                    style={{ backgroundColor: '#4CAF50', color: 'white', marginTop: '10px', borderRadius: '16px' }}
+                    style={{
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      marginTop: '10px',
+                      borderRadius: '16px',
+                    }}
                   >
                     Search
                   </Button>
@@ -177,9 +182,44 @@ const WeatherApp = () => {
                   <Typography variant="h6" style={{ marginTop: '10px' }}>
                     Current Time: {currentTime}
                   </Typography>
-                  {/* <Typography variant="body1" style={{ marginTop: '5px' }}>
-                    Location: {currentLocation}
-                  </Typography> */}
+
+                  <Typography variant="h5" gutterBottom style={{ marginTop: '20px' }}>
+                    1-2 Days Forcast
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    {forecast.slice(0, 2).map((forecastData, index) => (
+                      <Grid item xs={6} key={forecastData.dt}>
+                        <Paper
+                          style={{
+                            padding: '10px',
+                            borderRadius: '8px',
+                            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                            border: '1px solid #ccc',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography variant="h6" style={{ marginBottom: '5px', fontSize: '14px' }}>
+                            {index === 0 ? '14 January' : '15 January'}
+                          </Typography>
+
+                          <Typography variant="body1" style={{ marginBottom: '5px', fontSize: '16px' }}>
+                            Temperature: {Math.round(forecastData.main.temp)}°C
+                          </Typography>
+
+                          <img
+                            src={`https://openweathermap.org/img/w/${forecastData.weather[0].icon}.png`}
+                            alt="weather-icon"
+                            style={{ width: '40px', height: '40px', marginBottom: '5px' }}
+                          />
+
+                          <Typography variant="body2" style={{ fontSize: '12px' }}>
+                            {forecastData.weather[0].description}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
                 </>
               )}
             </>
