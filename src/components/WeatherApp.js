@@ -186,7 +186,6 @@ const WeatherApp = () => {
                   <Typography variant="h5" gutterBottom style={{ marginTop: '20px' }}>
                     1-2 Days Forcast
                   </Typography>
-
                   <Grid container spacing={2}>
                     {forecast.slice(0, 2).map((forecastData, index) => (
                       <Grid item xs={6} key={forecastData.dt}>
@@ -200,7 +199,7 @@ const WeatherApp = () => {
                           }}
                         >
                           <Typography variant="h6" style={{ marginBottom: '5px', fontSize: '14px' }}>
-                            {index === 0 ? '14 January' : '15 January'}
+                            {index === 0 ? 'Today' : `Tomorrow, ${new Date().getDate() + 1} January`}
                           </Typography>
 
                           <Typography variant="body1" style={{ marginBottom: '5px', fontSize: '16px' }}>
@@ -220,6 +219,7 @@ const WeatherApp = () => {
                       </Grid>
                     ))}
                   </Grid>
+
                 </>
               )}
             </>
